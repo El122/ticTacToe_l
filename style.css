@@ -1,0 +1,147 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: black;
+    color: white;
+    font-family: "Comfortaa", cursive;
+}
+
+header {
+    padding: 20px 10px;
+    margin-bottom: 20px;
+
+    border-bottom: 1px solid white;
+}
+
+.header-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+
+    display: flex;
+    justify-content: space-between;
+}
+
+#startButt {
+    padding: 8px 30px;
+
+    font-family: "Comfortaa", cursive;
+    color: white;
+    background-color: transparent;
+    border: 1px solid white;
+}
+
+#startButt:hover {
+    color: black;
+    background-color: white;
+}
+
+main {
+    max-width: 1100px;
+    margin: 0 auto;
+
+    display: flex;
+    justify-content: space-between;
+}
+
+.players {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
+}
+
+.players input {
+    width: 100px;
+
+    background-color: transparent;
+    border: 0;
+    border-bottom: 1px solid white;
+    color: white;
+    font-family: "Comfortaa", cursive;
+    outline: none;
+}
+
+.players input.firstPlayer {
+    text-align: right;
+}
+
+.gameBoard {
+    width: 300px;
+    margin: 0 auto;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+
+    background-color: black;
+}
+
+.square {
+    width: 100px;
+    height: 100px;
+
+    border: 1px solid white;
+}
+
+.playerCard img {
+    background-color: white;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-position: 0 10px;
+}
+
+/* SWITCHBOX */
+
+.switchbox {
+    display: flex;
+    align-items: center;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    margin: 10px;
+}
+
+.switch input {
+    display: none;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 15px;
+    background-color: rgb(255, 38, 0);
+    transition: 0.4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    border-radius: 15px;
+    background-color: white;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
+}
+
+input:checked + .slider {
+    background-color: #01c217;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
