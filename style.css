@@ -74,6 +74,9 @@ main {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
 
+    text-align: center;
+    font-size: 30px;
+
     background-color: black;
 }
 
@@ -82,6 +85,14 @@ main {
     height: 100px;
 
     border: 1px solid white;
+    background-color: black;
+    background-position: center;
+    background-size: cover;
+    color: white;
+}
+
+.playerCard {
+    text-align: center;
 }
 
 .playerCard img {
@@ -90,6 +101,13 @@ main {
     height: 200px;
     border-radius: 50%;
     object-position: 0 10px;
+}
+
+.playerCard h2 {
+    margin: 10px;
+    padding-bottom: 10px;
+
+    border-bottom: 1px solid white;
 }
 
 /* SWITCHBOX */
