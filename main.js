@@ -2,14 +2,15 @@ const startButt = document.getElementById("startButt");
 let gameOver = false;
 let players_arr = [];
 let someName = "Some Unicorn";
-let steps = 0;
 
 class Gameboard {
     constructor(board, players) {
         this.gameboard = board.getElementsByClassName("gameBoard")[0];
-        this.gameboard.style.display = "grid";
         this.field = this.createBoard();
+        this.fieldArr = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        this.steps = 0;
         this.renderPlayersCards(players);
+        this.gameboard.style.display = "grid";
     }
 
     createBoard = () => {
@@ -31,52 +32,71 @@ class Gameboard {
         players.player2.createCard(1);
     }
 
+    playWithPlayer = (sign, playerStep, players) => {
+        for (let field of this.field) {
+            field.onclick = () => {
+                let step = this.doStep(field, sign, playerStep);
+                gameOver = this.checkWinners(sign);
+
+                if (gameOver) this.gameOver(players, sign);
+
+                if (step) {
+                    [playerStep, sign] = this.checkStep(playerStep);
+                }
+            }
+        }
+    }
+
     doStep = (field, sign, signImg) => {
-        if (field.getAttribute("player") != "") {
+        if (field.getAttribute("player") == "O" || field.getAttribute("player") == "X") {
             return false;
         }
 
-        ++steps;
+        ++this.steps;
         field.style.backgroundColor = "white";
         field.style.backgroundImage = "URL(" + signImg + ")";
         field.setAttribute("player", sign);
+
+        for (let i = 0; i < 9; ++i) {
+            this.fieldArr[i] = this.gameboard.getElementsByClassName("square")[i].getAttribute("player");
+        }
 
         return true;
     }
 
     checkStep = (playerStep) => {
         if (playerStep == "img/cake.svg") {
-            return ["img/cupcake.svg", "0"];
+            return ["img/cupcake.svg", "O"];
         } else {
             return ["img/cake.svg", "X"];
         }
     }
 
-    checkWinners = (gameBoard, steps) => {
+    checkWinners = (sign) => {
+        let board = this.field;
+
         if (
-            (gameBoard[0].getAttribute("player") == gameBoard[1].getAttribute("player") && gameBoard[1].getAttribute("player") == gameBoard[2].getAttribute("player") ||
-                gameBoard[0].getAttribute("player") == gameBoard[3].getAttribute("player") && gameBoard[3].getAttribute("player") == gameBoard[6].getAttribute("player") ||
-                gameBoard[0].getAttribute("player") == gameBoard[4].getAttribute("player") && gameBoard[4].getAttribute("player") == gameBoard[8].getAttribute("player")) && gameBoard[0].getAttribute("player") != "" ||
-
-            (gameBoard[3].getAttribute("player") == gameBoard[4].getAttribute("player") && gameBoard[4].getAttribute("player") == gameBoard[5].getAttribute("player") ||
-                gameBoard[1].getAttribute("player") == gameBoard[4].getAttribute("player") && gameBoard[4].getAttribute("player") == gameBoard[7].getAttribute("player") ||
-                gameBoard[2].getAttribute("player") == gameBoard[4].getAttribute("player") && gameBoard[4].getAttribute("player") == gameBoard[6].getAttribute("player")) && gameBoard[4].getAttribute("player") != "" ||
-
-            (gameBoard[6].getAttribute("player") == gameBoard[7].getAttribute("player") && gameBoard[7].getAttribute("player") == gameBoard[8].getAttribute("player") ||
-                gameBoard[2].getAttribute("player") == gameBoard[5].getAttribute("player") && gameBoard[5].getAttribute("player") == gameBoard[8].getAttribute("player")) && gameBoard[8].getAttribute("player") != "" ||
-            steps >= 9
+            (board[0].getAttribute("player") == sign && board[1].getAttribute("player") == sign && board[2].getAttribute("player") == sign) ||
+            (board[3].getAttribute("player") == sign && board[4].getAttribute("player") == sign && board[5].getAttribute("player") == sign) ||
+            (board[6].getAttribute("player") == sign && board[7].getAttribute("player") == sign && board[8].getAttribute("player") == sign) ||
+            (board[0].getAttribute("player") == sign && board[3].getAttribute("player") == sign && board[6].getAttribute("player") == sign) ||
+            (board[1].getAttribute("player") == sign && board[4].getAttribute("player") == sign && board[7].getAttribute("player") == sign) ||
+            (board[2].getAttribute("player") == sign && board[5].getAttribute("player") == sign && board[8].getAttribute("player") == sign) ||
+            (board[0].getAttribute("player") == sign && board[4].getAttribute("player") == sign && board[8].getAttribute("player") == sign) ||
+            (board[2].getAttribute("player") == sign && board[4].getAttribute("player") == sign && board[6].getAttribute("player") == sign) ||
+            this.steps >= 9
         ) {
             return true;
         }
         return false;
     }
 
-    gameOver = (players, sign, steps) => {
+    gameOver = (players, sign) => {
         let player1 = players.player1;
         let player2 = players.player2;
         let winner;
 
-        if (steps >= 9) {
+        if (this.steps >= 9) {
             this.gameboard.style.display = "block";
             this.gameboard.innerHTML = "Not winners!!";
             return 0;
@@ -95,6 +115,83 @@ class Gameboard {
 
         player1.createCard(0);
         player2.createCard(1);
+    }
+
+    playWithAI = (sign, playerStep) => {
+        this.minimax(sign, playerStep);
+    }
+
+    doStepAI = (field, sign, signImg) => {
+        console.log(field)
+        field.style.backgroundColor = "white";
+        field.style.backgroundImage = "URL(" + signImg + ")";
+        field.setAttribute("player", sign);
+
+        for (let i = 0; i < 9; ++i) {
+            this.fieldArr[i] = this.gameboard.getElementsByClassName("square")[i].getAttribute("player");
+        }
+
+        return true;
+    }
+
+    emptyIndexes = () => {
+        return this.fieldArr.filter(s => s != "O" && s != "X");
+    }
+
+    minimax = (sign, signImg) => {
+        ++this.steps;
+        let emtyField = this.emptyIndexes();
+
+        if (this.checkWinners("X")) {
+            return {
+                score: -10
+            };
+        } else if (this.checkWinners("O")) {
+            return {
+                score: 10
+            };
+        } else if (emtyField.length === 0) {
+            return {
+                score: 0
+            };
+        }
+
+        let moves = [];
+        for (let i = 0; i < emtyField.length; i++) {
+            let move = {};
+            move.index = this.fieldArr[emtyField[i]];
+            this.doStepAI(this.field[emtyField[i]], sign, signImg);
+
+            if (sign == "X") {
+                let g = this.minimax("X");
+                move.score = g.score;
+            } else {
+                let g = this.minimax("O");
+                move.score = g.score;
+            }
+            this.fieldArr[emtyField[i]] = move.index;
+            moves.push(move);
+        }
+
+        let bestMove;
+        if (sign === "O") {
+            let bestScore = -10000;
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].score > bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                }
+            }
+        } else {
+            let bestScore = 10000;
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].score < bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                }
+            }
+        }
+        return moves[bestMove];
     }
 }
 
@@ -116,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const checkBox = document.getElementById("players");
     let playersForm = document.getElementsByClassName("players")[0];
     let checkedPlayers = checkPlayers(checkBox); // проверка второго игрока
-    players_arr.push(new Player("AI", "0"));
+    players_arr.push(new Player("AI", "O"));
     let players;
     let gameBoard;
 
@@ -160,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
             player2 = players_arr[0];
         } else {
             player1 = checkPlayersArr("firstPlayer", "X");
-            player2 = checkPlayersArr("secondPlayer", "0");
+            player2 = checkPlayersArr("secondPlayer", "O");
         }
 
         return { player1, player2 };
@@ -206,22 +303,14 @@ document.addEventListener("DOMContentLoaded", () => {
         let playerStep = "img/cake.svg";
         let sign = "X";
         let board = document.getElementsByTagName("main")[0];
-        steps = 0;
 
         players = createPlayers(checkedPlayers);
         gameBoard = new Gameboard(board, players);
 
-        for (let field of gameBoard.field) {
-            field.onclick = () => {
-                let step = gameBoard.doStep(field, sign, playerStep);
-                gameOver = gameBoard.checkWinners(gameBoard.field, steps);
-
-                if (gameOver) gameBoard.gameOver(players, sign, steps);
-
-                if (step) {
-                    [playerStep, sign] = gameBoard.checkStep(playerStep);
-                }
-            }
+        switch (checkedPlayers) {
+            case "AI": gameBoard.playWithAI(sign, playerStep); break;
+            case "players": gameBoard.playWithPlayer(sign, playerStep); break;
+            default: alert("Some Error");
         }
     }
 });
