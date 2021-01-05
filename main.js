@@ -83,27 +83,27 @@ class Gameboard {
     for (let field of this.field) {
       field.onclick = () => {
         this.doStep(field, signUnicorn, playerStep);
-
         this.checkGameOver(players, "X");
 
-        let index = this.minimax("O");
-        console.log(index)
-        this.doStepAI(index);
-
-        this.checkGameOver(players, "O");
+        this.doStepAI(players);
       };
     }
   };
 
-  doStepAI = (index) => {
+  doStepAI = (players) => {
     ++this.steps;
+    let index = this.minimax("O");
     let field = this.field[index];
 
     field.style.backgroundColor = "white";
     field.style.backgroundImage = "URL(img/cupcake.svg)";
     field.setAttribute("player", "O");
 
-    return true;
+    for (let i = 0; i < 9; ++i) {
+      this.fieldArr[i] = this.gameboard.getElementsByClassName("square")[i].getAttribute("player");
+    }
+
+    this.checkGameOver(players, "O");
   };
 
   emptyIndexes = () => {
@@ -159,33 +159,33 @@ class Gameboard {
   }
 
   checkWinners = (sign) => {
-    let board = this.field;
+    let board = this.fieldArr;
 
     if (
-      (board[0].getAttribute("player") == sign &&
-        board[1].getAttribute("player") == sign &&
-        board[2].getAttribute("player") == sign) ||
-      (board[3].getAttribute("player") == sign &&
-        board[4].getAttribute("player") == sign &&
-        board[5].getAttribute("player") == sign) ||
-      (board[6].getAttribute("player") == sign &&
-        board[7].getAttribute("player") == sign &&
-        board[8].getAttribute("player") == sign) ||
-      (board[0].getAttribute("player") == sign &&
-        board[3].getAttribute("player") == sign &&
-        board[6].getAttribute("player") == sign) ||
-      (board[1].getAttribute("player") == sign &&
-        board[4].getAttribute("player") == sign &&
-        board[7].getAttribute("player") == sign) ||
-      (board[2].getAttribute("player") == sign &&
-        board[5].getAttribute("player") == sign &&
-        board[8].getAttribute("player") == sign) ||
-      (board[0].getAttribute("player") == sign &&
-        board[4].getAttribute("player") == sign &&
-        board[8].getAttribute("player") == sign) ||
-      (board[2].getAttribute("player") == sign &&
-        board[4].getAttribute("player") == sign &&
-        board[6].getAttribute("player") == sign)
+      (board[0] == sign &&
+        board[1] == sign &&
+        board[2] == sign) ||
+      (board[3] == sign &&
+        board[4] == sign &&
+        board[5] == sign) ||
+      (board[6] == sign &&
+        board[7] == sign &&
+        board[8] == sign) ||
+      (board[0] == sign &&
+        board[3] == sign &&
+        board[6] == sign) ||
+      (board[1] == sign &&
+        board[4] == sign &&
+        board[7] == sign) ||
+      (board[2] == sign &&
+        board[5] == sign &&
+        board[8] == sign) ||
+      (board[0] == sign &&
+        board[4] == sign &&
+        board[8] == sign) ||
+      (board[2] == sign &&
+        board[4] == sign &&
+        board[6] == sign)
     ) {
       return true;
     }
