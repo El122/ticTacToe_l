@@ -1,22 +1,22 @@
-const startButt = document.getElementById("startButt");
-let gameOver = false;
-let players_arr = [];
-let someName = "Some Unicorn";
-
 class Gameboard {
   constructor(board, players) {
     this.gameboard = board.getElementsByClassName("gameBoard")[0];
     this.field = this.createBoard();
+
     this.fieldArr = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    this.gameIsOver = false;
     this.steps = 0;
+
     this.renderPlayersCards(players);
-    this.gameboard.style.display = "grid";
   }
+
+  // Создание поля
 
   createBoard = () => {
     this.gameboard.innerHTML = "";
-    let squares = 9;
-    for (let i = 0; i < squares; ++i) {
+    this.gameboard.style.display = "grid";
+
+    for (let i = 0; i < 9; ++i) {
       let boardSquare = document.createElement("button");
 
       boardSquare.classList.add("square");
@@ -32,17 +32,18 @@ class Gameboard {
     players.player2.createCard(1);
   };
 
-  playWithPlayer = (sign, playerStep, players) => {
+  // Игра человек X человек
+
+  playWithPlayer = (players) => {
+    let playerStep = "img/cake.svg";
+    let sign = "X";
+
     for (let field of this.field) {
       field.onclick = () => {
-        let step = this.doStep(field, sign, playerStep);
-        gameOver = this.checkWinners(sign);
+        this.doStep(field, sign, playerStep);
+        this.checkGameOver(players, sign);
 
-        if (gameOver) this.gameOver(players, sign);
-
-        if (step) {
-          [playerStep, sign] = this.checkStep(playerStep);
-        }
+        [playerStep, sign] = this.checkStep(sign);
       };
     }
   };
@@ -52,7 +53,7 @@ class Gameboard {
       field.getAttribute("player") == "O" ||
       field.getAttribute("player") == "X"
     ) {
-      return false;
+      doStep(field, sign, signImg);
     }
 
     ++this.steps;
@@ -61,12 +62,8 @@ class Gameboard {
     field.setAttribute("player", sign);
 
     for (let i = 0; i < 9; ++i) {
-      this.fieldArr[i] = this.gameboard
-        .getElementsByClassName("square")
-        [i].getAttribute("player");
+      this.fieldArr[i] = this.gameboard.getElementsByClassName("square")[i].getAttribute("player");
     }
-
-    return true;
   };
 
   checkStep = (sign) => {
@@ -76,6 +73,90 @@ class Gameboard {
       return ["img/cake.svg", "X"];
     }
   };
+
+  // Игра человек X AI
+
+  playWithAI = (players) => {
+    let playerStep = "img/cake.svg";
+    let signUnicorn = "X";
+
+    for (let field of this.field) {
+      field.onclick = () => {
+        this.doStep(field, signUnicorn, playerStep);
+
+        this.checkGameOver(players, "X");
+
+        let index = this.minimax("O");
+        console.log(index)
+        this.doStepAI(index);
+
+        this.checkGameOver(players, "O");
+      };
+    }
+  };
+
+  doStepAI = (index) => {
+    ++this.steps;
+    let field = this.field[index];
+
+    field.style.backgroundColor = "white";
+    field.style.backgroundImage = "URL(img/cupcake.svg)";
+    field.setAttribute("player", "O");
+
+    return true;
+  };
+
+  emptyIndexes = () => {
+    return this.fieldArr.filter((s) => s != "O" && s != "X");
+  };
+
+  minimax = (sign) => {
+    let emptyField = this.emptyIndexes();
+
+    if (this.checkWinners("X")) { return -10; }
+    else if (this.checkWinners("O")) { return 10; }
+    else if (emptyField.length === 0) { return 0; }
+
+    let moves = [];
+    for (let i = 0; i < emptyField.length; ++i) {
+      let score;
+      let index = this.fieldArr[emptyField[i]];
+      this.fieldArr[emptyField[i]] = sign;
+      if (sign == "O") {
+        score = this.minimax("X");
+      } else {
+        score = this.minimax("O");
+      }
+      this.fieldArr[emptyField[i]] = index;
+      moves.push(score);
+    }
+
+    let bestMove;
+    if (sign == "O") {
+      let bestScore = -1000;
+      for (let i = 0; i < moves.length; i++) {
+        if (moves[i] > bestScore) {
+          bestScore = moves[i];
+          bestMove = i;
+        }
+      }
+    } else {
+      let bestScore = 1000;
+      for (let i = 0; i < moves.length; i++) {
+        if (moves[i] < bestScore) {
+          bestScore = moves[i];
+          bestMove = i;
+        }
+      }
+    }
+
+    return emptyField[bestMove];
+  };
+
+  checkGameOver = (players, sign) => {
+    this.gameIsOver = this.checkWinners(sign);
+    if (this.gameIsOver) this.gameOver(players, sign);
+  }
 
   checkWinners = (sign) => {
     let board = this.field;
@@ -104,8 +185,7 @@ class Gameboard {
         board[8].getAttribute("player") == sign) ||
       (board[2].getAttribute("player") == sign &&
         board[4].getAttribute("player") == sign &&
-        board[6].getAttribute("player") == sign) ||
-      this.steps >= 9
+        board[6].getAttribute("player") == sign)
     ) {
       return true;
     }
@@ -137,91 +217,6 @@ class Gameboard {
     player1.createCard(0);
     player2.createCard(1);
   };
-
-  playWithAI = (sign, playerStep) => {
-    for (let field of this.field) {
-      field.onclick = () => {
-        let step = this.doStep(field, sign, playerStep);
-        gameOver = this.checkWinners(sign);
-
-        if (gameOver) this.gameOver(players, sign);
-        if (step) {
-          let index = this.minimax("O").index;
-          this.doStepAI(index);
-        }
-      };
-    }
-  };
-
-  doStepAI = (index) => {
-    let field = this.field[index];
-
-    field.style.backgroundColor = "white";
-    field.style.backgroundImage = "URL(img/cupcake.svg)";
-    field.setAttribute("player", "O");
-
-    return true;
-  };
-
-  emptyIndexes = () => {
-    return this.fieldArr.filter((s) => s != "O" && s != "X");
-  };
-
-  minimax = (sign) => {
-    ++this.steps;
-    let emtyField = this.emptyIndexes();
-
-    if (this.checkWinners("X")) {
-      return {
-        score: -10,
-      };
-    } else if (this.checkWinners("O")) {
-      return {
-        score: 10,
-      };
-    } else if (emtyField.length === 0) {
-      return {
-        score: 0,
-      };
-    }
-
-    let moves = [];
-    for (let i = 0; i < emtyField.length; ++i) {
-      let move = {};
-      move.index = this.fieldArr[emtyField[i]];
-      this.fieldArr[emtyField[i]] = sign;
-
-      if (sign == "O") {
-        let g = this.minimax("X");
-        move.score = g.score;
-      } else {
-        let g = this.minimax("O");
-        move.score = g.score;
-      }
-      this.fieldArr[emtyField[i]] = move.index;
-      moves.push(move);
-    }
-
-    let bestMove;
-    if (sign === "O") {
-      let bestScore = -10000;
-      for (let i = 0; i < moves.length; i++) {
-        if (moves[i].score > bestScore) {
-          bestScore = moves[i].score;
-          bestMove = i;
-        }
-      }
-    } else {
-      let bestScore = 10000;
-      for (let i = 0; i < moves.length; i++) {
-        if (moves[i].score < bestScore) {
-          bestScore = moves[i].score;
-          bestMove = i;
-        }
-      }
-    }
-    return moves[bestMove];
-  };
 }
 
 class Player {
@@ -232,22 +227,28 @@ class Player {
   }
 
   createCard = (playerNum) => {
-    const firstPlayerCard = document.getElementsByClassName("playerCard")[
-      playerNum
-    ];
-    firstPlayerCard.getElementsByTagName("h2")[0].innerHTML = this.name;
-    firstPlayerCard.getElementsByTagName("p")[0].innerHTML =
-      "WINS: " + this.wins;
+    const playerCard = document.getElementsByClassName("playerCard")[playerNum];
+
+    playerCard.getElementsByTagName("h2")[0].innerHTML = this.name;
+    playerCard.getElementsByTagName("p")[0].innerHTML = "WINS: " + this.wins;
   };
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const startButt = document.getElementById("startButt");
   const checkBox = document.getElementById("players");
+
   let playersForm = document.getElementsByClassName("players")[0];
-  let checkedPlayers = checkPlayers(checkBox); // проверка второго игрока
-  players_arr.push(new Player("AI", "O"));
+  let checkedPlayers = checkPlayers(checkBox);
+  let players_arr = [];
+  let someName = "Some Unicorn";
   let players;
   let gameBoard;
+
+  players_arr.push(new Player("AI", "O"));
+  renderPlayersForm(playersForm, players);
+
+  // Пользователи
 
   function toggleSomeName() {
     if (someName == "Some Unicorn") someName = "Maybe Unicorn";
@@ -255,18 +256,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function addPlayer(newPlayerName, sign) {
-    toggleSomeName();
-
     let newPlayer = new Player(newPlayerName, sign);
     players_arr.push(newPlayer);
+
     return newPlayer;
   }
 
   function checkPlayersArr(playerSt, sign) {
-    let newPlayerName =
-      document.getElementsByClassName(playerSt)[0].value || someName;
-    let newPlayer;
+    let newPlayerName = document.getElementsByClassName(playerSt)[0].value || someName;
     let playerWasFind = false;
+    let newPlayer;
+
+    toggleSomeName();
+
     players_arr.forEach((player) => {
       if (player.name == newPlayerName) {
         newPlayer = player;
@@ -296,7 +298,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return { player1, player2 };
   }
 
-  renderPlayersForm = (playersForm, players) => {
+  // Форма для ввода имени 
+
+  function renderPlayersForm(playersForm, players) {
     let input = document.createElement("input");
     let p = document.createElement("p");
 
@@ -321,31 +325,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  function checkPlayers(checkBox) {
+  function checkPlayers() {
     return checkBox.checked ? "AI" : "players";
   }
 
-  renderPlayersForm(playersForm, checkedPlayers);
-
   checkBox.onclick = () => {
-    checkedPlayers = checkPlayers(checkBox);
+    checkedPlayers = checkPlayers();
     renderPlayersForm(playersForm, checkedPlayers);
   };
 
+  ///////////////////////////////
+
   startButt.onclick = () => {
-    let playerStep = "img/cake.svg";
-    let sign = "X";
     let board = document.getElementsByTagName("main")[0];
 
     players = createPlayers(checkedPlayers);
     gameBoard = new Gameboard(board, players);
 
     switch (checkedPlayers) {
-      case "AI":
-        gameBoard.playWithAI(sign, playerStep);
-        break;
       case "players":
-        gameBoard.playWithPlayer(sign, playerStep);
+        gameBoard.playWithPlayer(players);
+        break;
+      case "AI":
+        gameBoard.playWithAI(players);
         break;
       default:
         alert("Some Error");
