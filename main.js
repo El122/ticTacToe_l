@@ -155,7 +155,7 @@ class Gameboard {
 
   checkGameOver = (players, sign) => {
     this.gameIsOver = this.checkWinners(sign);
-    if (this.gameIsOver) this.gameOver(players, sign);
+    if (this.gameIsOver || this.steps >= 9) this.gameOver(players, sign);
   }
 
   checkWinners = (sign) => {
@@ -197,7 +197,7 @@ class Gameboard {
     let player2 = players.player2;
     let winner;
 
-    if (this.steps >= 9) {
+    if (this.steps >= 9 && !this.checkWinners("X") && !this.checkWinners("O")) {
       this.gameboard.style.display = "block";
       this.gameboard.innerHTML = "Not winners!!";
       return 0;
